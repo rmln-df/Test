@@ -1,298 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barbearia Waldemar WD</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Waldemar WD</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <style>
+        :root { --bg: #121212; --card: #1c1c1c; --primary: #e67e22; --text: #ffffff; --success:
+        #ff8800;
+      --danger: #c0392b; --info: #3498db; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .app-container { width: 100%; max-width: 500px; height: 100vh; background: var(--bg); position: relative; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        @media (min-width: 600px) { .app-container { height: 92vh; border: 6px solid #333; border-radius: 30px; } }
+        
+        .screen { display: none; height: 100%; padding: 20px; overflow-y: auto; }
+        .screen.active { display: block !important; }
 
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+        /* BARRA DE NOTIFICAÇÃO (APENAS PARA CLIENTES) */
+        #barra-mensagem { display: none; background: var(--success); color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; position: sticky; top: 0; width: 100%; z-index: 2000; border-bottom: 2px solid rgba(0,0,0,0.2); }
 
-<style>
+        #toast-aviso { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; z-index: 3000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; }
+        #toast-aviso.show { top: 20px; }
 
-:root{
-    --bg:#121212;
-    --card:#1c1c1c;
-    --primary:#e67e22;
-    --text:#ffffff;
-    --success:#ff8800;
-    --danger:#c0392b;
-    --info:#3498db;
+        .login-box { margin-top: 40px; text-align: center; }
+        .login-box label { display: block; text-align: left; color: var(--primary); font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input { width: 100%; padding: 16px; background: #2a2a2a; border: 2px solid #444; border-radius: 12px; color: #fff; margin-bottom: 20px; outline: none; font-size: 16px; }
+        
+        h3 { color: var(--primary); text-align: center; margin-bottom: 20px; font-size: 38px; font-weight: 800; text-transform: uppercase; }
+        
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .item { background: var(--card); padding: 15px; border-radius: 15px; text-align: center; border: 2px solid transparent; cursor: pointer; transition: 0.3s; min-height: 110px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .item span { font-size: 24px; margin-bottom: 5px; }
+        .item p { font-size: 13px; font-weight: bold; margin: 0; color: #eee; }
+        .item.selected { border-color: var(--primary); background: rgba(230, 126, 34, 0.15); }
+
+        .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        
+        .time-slot {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid #ff8800;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
 }
+        /* 👆
+        .time-slot { padding: 12px; border-radius: 8px; text-align: center; border: 2px solid var(--success); color: var(--success); cursor: pointer; font-weight: bold; }
+        */
+        .time-slot.selected { background: var(--info) !important; color: white !important; border-color: var(--info) !important; }
+        .time-slot.occupied { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; cursor: not-allowed; }
+        
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; text-transform: uppercase; }
+        .btn-back { background: #333; }
 
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-body{
-    background-color:var(--bg);
-    color:var(--text);
-    font-family:'Segoe UI',sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-}
-
-.app-container{
-    width:100%;
-    max-width:500px;
-    height:100vh;
-    background:var(--bg);
-    position:relative;
-    overflow:hidden;
-    box-shadow:0 0 50px rgba(0,0,0,0.8);
-}
-
-@media (min-width:600px){
-    .app-container{
-        height:92vh;
-        border:6px solid #333;
-        border-radius:30px;
-    }
-}
-
-.screen{
-    display:none;
-    height:100%;
-    padding:20px;
-    overflow-y:auto;
-}
-
-.screen.active{
-    display:block !important;
-}
-
-#barra-mensagem{
-    display:none;
-    background:var(--success);
-    color:white;
-    padding:12px;
-    text-align:center;
-    font-weight:bold;
-    font-size:14px;
-    position:sticky;
-    top:0;
-    width:100%;
-    z-index:2000;
-}
-
-#toast-aviso{
-    position:absolute;
-    top:-100px;
-    left:50%;
-    transform:translateX(-50%);
-    width:90%;
-    padding:15px;
-    border-radius:12px;
-    text-align:center;
-    font-weight:bold;
-    z-index:3000;
-    transition:0.5s;
-    color:white;
-}
-
-#toast-aviso.show{
-    top:20px;
-}
-
-.login-box{
-    margin-top:40px;
-    text-align:center;
-}
-
-.login-box label{
-    display:block;
-    text-align:left;
-    color:var(--primary);
-    font-weight:bold;
-    margin-bottom:5px;
-    font-size:14px;
-}
-
-input{
-    width:100%;
-    padding:16px;
-    background:#2a2a2a;
-    border:2px solid #444;
-    border-radius:12px;
-    color:#fff;
-    margin-bottom:20px;
-    outline:none;
-    font-size:16px;
-}
-
-h3{
-    color:var(--primary);
-    text-align:center;
-    margin-bottom:20px;
-    font-size:38px;
-    font-weight:800;
-    text-transform:uppercase;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-    margin-bottom:20px;
-}
-
-.item{
-    background:var(--card);
-    padding:15px;
-    border-radius:15px;
-    text-align:center;
-    border:2px solid transparent;
-    cursor:pointer;
-    transition:0.3s;
-    min-height:110px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-}
-
-.item p{
-    font-size:13px;
-    font-weight:bold;
-    margin-top:8px;
-    color:#eee;
-}
-
-.item.selected{
-    border-color:var(--primary);
-    background:rgba(230,126,34,0.15);
-}
-
-/* IMAGENS DOS SERVIÇOS */
-
-.icone-servico{
-    width:150px;
-    height:150px;
-    object-fit:contain;
-}
-
-/* HORÁRIOS */
-
-.time-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-}
-
-.time-slot{
-    padding:12px;
-    border-radius:8px;
-    text-align:center;
-    border:2px solid #ff8800;
-    color:#fff;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.time-slot.selected{
-    background:var(--info)!important;
-    color:white!important;
-    border-color:var(--info)!important;
-}
-
-.time-slot.occupied{
-    background:var(--danger)!important;
-    color:white!important;
-    border-color:var(--danger)!important;
-    cursor:not-allowed;
-}
-
-.btn{
-    width:100%;
-    padding:18px;
-    border:none;
-    border-radius:12px;
-    background:var(--primary);
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:10px;
-    font-size:16px;
-    text-transform:uppercase;
-}
-
-.btn-back{
-    background:#333;
-}
-
-</style>
+        .appointment-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); position: relative; }
+        .card-info { cursor: pointer; margin-bottom: 10px; line-height: 1.4; }
+        .card-msg-footer { background: rgba(39, 174, 96, 0.1); border: 1px dashed var(--success); padding: 8px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: var(--success); font-weight: bold; }
+        .btn-excluir { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-transform: uppercase; }
+    </style>
 </head>
-
 <body>
 
 <div class="app-container">
+    <div id="toast-aviso">Mensagem</div>
+    <div id="barra-mensagem"></div>
 
-<div id="toast-aviso">Mensagem</div>
+    <div id="screen-login" class="screen active">
+        <div class="login-box">
+            <h3>Barbearia Waldemar</h3>
+            
+            <!--
+            <p style="color: gray;margin-bottom: 30px; font-weight: bold;">WORK DESIGN</p>
+            -->
+            <label>NOME DO CLIENTE</label>
+            <input type="text" id="login-user" placeholder="Seu nome">
+            <label>CELULAR (SENHA)</label>
+            <input type="tel" id="login-pass" placeholder="82 99999-9999">
+            <button class="btn" onclick="checkLogin()">ENTRAR</button>
+        </div>
+    </div>
 
-<div id="screen-login" class="screen active">
-
-<div class="login-box">
-
-<h3>Barbearia Waldemar</h3>
-
-<label>NOME DO CLIENTE</label>
-<input type="text" id="login-user" placeholder="Seu nome">
-
-<label>CELULAR</label>
-<input type="tel" id="login-pass" placeholder="82 99999-9999">
-
-<button class="btn" onclick="checkLogin()">
-ENTRAR
-</button>
-
-</div>
-</div>
-
-<!-- PROFISSIONAL -->
-
-<div id="screen-staff" class="screen">
-
-<h3>Profissional</h3>
-
-<div class="grid">
-
-<div class="item" onclick="selSt(this, 'Valdemar')">
-<span style="font-size:35px;">💈</span>
-<p>Valdemar</p>
-</div>
+    <div id="screen-staff" class="screen">
+        <h3>Profissional</h3>
+        <div class="grid">
+            <div class="item" onclick="selSt(this, 'Valdemar')"><span>👨🏻‍💼</span><p>Valdemar</p></div>
+            <div class="item" onclick="selSt(this, 'Outros')"><span>💈</span><p>Outros</p></div>
+        </div>
+        <button class="btn btn-back" onclick="nav('screen-login')">VOLTAR</button>
+    </div>
     
-<div class="item" onclick="selSt(this, 'Outros')">
-<span style="font-size:35px;">✂️</span>
-<p>Outros</p>
-</div>
-
-</div>
-
-<button class="btn btn-back" onclick="nav('screen-login')">
-VOLTAR
-</button>
-
-</div>
-
-<!-- SERVIÇOS -->
+    
+    
+    <!-- SERVIÇOS -->
 
 <div id="screen-services" class="screen">
 
 <h3>Serviços</h3>
 
 <div class="grid">
-
-
-<div class="item" onclick="selSr(this, 'Waldemar')">
-<img src="img/Waldemar.png" class="icone-servico">
-<p>Waldemar</p>
-</div>
-
-    
 
 <div class="item" onclick="selSr(this, 'corte tesoura')">
 <img src="img/corte tesoura.png" class="icone-servico">
@@ -331,127 +141,218 @@ VOLTAR
 </button>
 
 </div>
+    
+  <!--  ☝️
+    
 
-<!-- AGENDAMENTO -->
+    <div id="screen-services" class="screen">
+        <h3>Serviços</h3>
+        <div class="grid">
+            <div class="item" onclick="selSr(this, 'Corte/Tesoura')"><span>✂️</span><p>Corte</p></div>
+            <div class="item" onclick="selSr(this, 'Barba')"><span>🪒</span><p>Barba</p></div>
+            <div class="item" onclick="selSr(this, 'Combo')"><span>🧔</span><p>Combo</p></div>
+            <div class="item" onclick="selSr(this, 'Luzes')"><span>💡</span><p>Luzes</p></div>
+            <div class="item" onclick="selSr(this, 'Pigmentação')"><span>🎨</span><p>Pigmentação</p></div>
+            <div class="item" onclick="selSr(this, 'Sobrancelha')"><span>🤨</span><p>Sobrancelha</p></div>
+        </div>
+        <button class="btn btn-back" onclick="nav('screen-staff')">VOLTAR</button>
+    </div>
+    
+    -->
 
-<div id="screen-booking" class="screen">
+    <div id="screen-booking" class="screen">
+        <h3>Agendamento</h3>
+        <label>DATA</label>
+        <input type="date" id="book-date" onchange="atualizarHorariosDisponiveis()">
+        <div id="time-container" class="time-grid"></div>
+        <button class="btn" onclick="confirmarAgendamento()">RESERVAR</button>
+        <button class="btn btn-back" onclick="nav('screen-services')">VOLTAR</button>
+    </div>
 
-<h3>Agendamento</h3>
-
-<label>DATA</label>
-
-<input type="date" id="book-date">
-
-<div id="time-container" class="time-grid"></div>
-
-<button class="btn">
-RESERVAR
-</button>
-
-<button class="btn btn-back" onclick="nav('screen-services')">
-VOLTAR
-</button>
-
-</div>
-
+    <div id="screen-admin" class="screen">
+        <h3>Painel Admin</h3>
+        <div id="admin-list">Carregando...</div>
+        <button class="btn btn-back" onclick="nav('screen-login')">SAIR</button>
+    </div>
 </div>
 
 <script>
+    const firebaseConfig = { databaseURL: "https://barbearia-valdemar-default-rtdb.firebaseio.com", projectId: "barbearia-valdemar" };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-const firebaseConfig = {
-    databaseURL:"https://barbearia-valdemar-default-rtdb.firebaseio.com",
-    projectId:"barbearia-valdemar"
-};
+    let sStaff = "", sService = "", sTime = "", sUser = "", sPhone = "", isAdmin = false;
 
-firebase.initializeApp(firebaseConfig);
-
-let sStaff = "";
-let sService = "";
-
-function nav(id){
-
-    document.querySelectorAll('.screen')
-    .forEach(s => s.classList.remove('active'));
-
-    document.getElementById(id)
-    .classList.add('active');
-
-}
-
-function checkLogin(){
-
-    const u =
-    document.getElementById('login-user').value;
-
-    const p =
-    document.getElementById('login-pass').value;
-
-    if(u !== "" && p.length >= 8){
-
-        nav('screen-staff');
-
-    }else{
-
-        avisar("Dados inválidos!");
-
+    function avisar(texto, tipo = "aviso") {
+        const t = document.getElementById('toast-aviso');
+        t.innerText = texto;
+        t.style.background = tipo === "sucesso" ? "var(--success)" : (tipo === "erro" ? "var(--danger)" : "var(--primary)");
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 4000);
     }
 
-}
+    window.onload = function() {
+        const n = localStorage.getItem('barbearia_nome'), f = localStorage.getItem('barbearia_fone');
+        if(n) document.getElementById('login-user').value = n;
+        if(f) document.getElementById('login-pass').value = f;
+        if(n && f && n !== "WD") { sUser = n; sPhone = f; ouvirMensagensAdm(n, f); }
+    }
 
-function avisar(texto){
+    function nav(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'screen-admin') renderAdmin();
+        if(id === 'screen-booking') gerarTabelaHorarios();
+    }
 
-    const t =
-    document.getElementById('toast-aviso');
+    function checkLogin() {
+        const uEl = document.getElementById('login-user'), pEl = document.getElementById('login-pass');
+        const u = uEl.value.trim(), p = pEl.value.trim();
 
-    t.innerText = texto;
+        if(u === "WD" && p === "9994") { 
+            isAdmin = true;
+            uEl.value = ""; pEl.value = "";
+            document.getElementById('barra-mensagem').style.display = "none"; // Garante que some no admin
+            nav('screen-admin'); 
+            return; 
+        }
 
-    t.classList.add('show');
+        if(u !== "" && p.length >= 8) {
+            isAdmin = false;
+            localStorage.setItem('barbearia_nome', u); localStorage.setItem('barbearia_fone', p);
+            sUser = u; sPhone = p; 
+            ouvirMensagensAdm(u, p); 
+            nav('screen-staff');
+        } else { avisar("Dados inválidos!", "erro"); }
+    }
 
-    setTimeout(() => {
+    function ouvirMensagensAdm(nome, fone) {
+        // Se for admin, não precisa ouvir as próprias mensagens no topo
+        if(isAdmin) return;
 
-        t.classList.remove('show');
+        database.ref('agendamentos').on('value', snap => {
+            const ags = snap.val(); let msg = "";
+            if(ags) Object.values(ags).forEach(ag => { 
+                if(ag.cliente === nome && ag.telefone === fone && ag.msgAdm) msg = "📩 Resposta: " + ag.msgAdm; 
+            });
+            const barra = document.getElementById('barra-mensagem');
+            if(msg && !isAdmin) { barra.innerText = msg; barra.style.display = "block"; } else { barra.style.display = "none"; }
+        });
+    }
+    
+    
+        function renderAdmin() {
+        const container = document.getElementById('admin-list');
+        database.ref('agendamentos').on('value', snap => {
+            container.innerHTML = ""; const val = snap.val();
+            if(!val) return container.innerHTML = "Agenda vazia.";
+            
+            // Lista de dias para converter o número do sistema em nome
+            const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-    },3000);
+            Object.keys(val).forEach(id => {
+                const ag = val[id];
+                
+                // Lógica para descobrir o dia da semana
+                // Adicionamos 'T00:00' para evitar erro de fuso horário na conversão
+                const dataObj = new Date(ag.data + 'T00:00');
+                const diaNome = diasSemana[dataObj.getDay()];
 
-}
+                const card = document.createElement('div');
+                card.className = 'appointment-card';
+                card.innerHTML = `
+                    <div class="card-info" onclick="responderCliente('${id}', '${ag.cliente}')">
+                        <strong style="color:var(--primary); font-size:18px;">${ag.profissional}</strong><br>
+                        <strong>Cliente:</strong> ${ag.cliente}<br>
+                        <strong>Serviço:</strong> ${ag.servico}<br>
+                        <strong>Horário:</strong> ${ag.hora} | ${ag.data} (${diaNome})<br>
+                        <strong>Tel:</strong> ${ag.telefone}<br>
+                        ${ag.msgAdm ? `<div class="card-msg-footer">📩 Enviado: ${ag.msgAdm}</div>` : '<em style="color:gray; font-size:12px;">(Toque para responder ao cliente)</em>'}
+                    </div>
+                    <button class="btn-excluir" onclick="del('${id}')">Finalizar / Remover</button>
+                `;
+                container.appendChild(card);
+            });
+        });
+    }
 
-function selSt(el,n){
+    /* 👆
 
-    sStaff = n;
+    function renderAdmin() {
+        const container = document.getElementById('admin-list');
+        database.ref('agendamentos').on('value', snap => {
+            container.innerHTML = ""; const val = snap.val();
+            if(!val) return container.innerHTML = "Agenda vazia.";
+            Object.keys(val).forEach(id => {
+                const ag = val[id];
+                const card = document.createElement('div');
+                card.className = 'appointment-card';
+                card.innerHTML = `
+                    <div class="card-info" onclick="responderCliente('${id}', '${ag.cliente}')">
+                        <strong style="color:var(--primary); font-size:18px;">${ag.profissional}</strong><br>
+                        <strong>Cliente:</strong> ${ag.cliente}<br>
+                        <strong>Serviço:</strong> ${ag.servico}<br>
+                        <strong>Horário:</strong> ${ag.hora} | ${ag.data}<br>
+                        <strong>Tel:</strong> ${ag.telefone}<br>
+                        ${ag.msgAdm ? `<div class="card-msg-footer">📩 Enviado: ${ag.msgAdm}</div>` : '<em style="color:gray; font-size:12px;">(Toque para responder ao cliente)</em>'}
+                    </div>
+                    <button class="btn-excluir" onclick="del('${id}')">Finalizar / Remover</button>
+                `;
+                container.appendChild(card);
+            });
+        });
+    }
+    */
 
-    document
-    .querySelectorAll('#screen-staff .item')
-    .forEach(i => i.classList.remove('selected'));
+    function responderCliente(id, nome) {
+        let m = prompt("Mensagem para " + nome);
+        if(m) database.ref('agendamentos/' + id).update({ msgAdm: m });
+    }
 
-    el.classList.add('selected');
+    function del(id) { if(confirm("Deseja concluir o trabalho?")) database.ref('agendamentos/' + id).remove(); }
 
-    setTimeout(() => {
+    function selSt(el, n) { sStaff = n; document.querySelectorAll('#screen-staff .item').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); setTimeout(() => nav('screen-services'), 300); }
+    function selSr(el, s) { sService = s; document.querySelectorAll('#screen-services .item').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); setTimeout(() => nav('screen-booking'), 300); }
 
-        nav('screen-services');
+    function gerarTabelaHorarios() {
+        const container = document.getElementById('time-container'); container.innerHTML = "";
+        const horas = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
+        horas.forEach(h => {
+            const div = document.createElement('div'); div.className = 'time-slot'; div.innerText = h;
+            div.onclick = () => {
+                if(div.classList.contains('occupied')) { avisar("Horário ocupado!", "erro"); return; }
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                div.classList.add('selected'); sTime = h;
+            };
+            container.appendChild(div);
+        });
+        atualizarHorariosDisponiveis();
+    }
 
-    },300);
+    function atualizarHorariosDisponiveis() {
+        const d = document.getElementById('book-date').value; if(!d) return;
+        database.ref('agendamentos').once('value', snap => {
+            const ags = snap.val();
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('occupied');
+                if(ags) Object.values(ags).forEach(ag => {
+                    if(ag.data === d && ag.profissional === sStaff && ag.hora === slot.innerText) slot.classList.add('occupied');
+                });
+            });
+        });
+    }
 
-}
-
-function selSr(el,s){
-
-    sService = s;
-
-    document
-    .querySelectorAll('#screen-services .item')
-    .forEach(i => i.classList.remove('selected'));
-
-    el.classList.add('selected');
-
-    setTimeout(() => {
-
-        nav('screen-booking');
-
-    },300);
-
-}
-
+    function confirmarAgendamento() {
+        const d = document.getElementById('book-date').value;
+        if(!d || !sTime) { avisar("Escolha data e hora!", "aviso"); return; }
+        database.ref('agendamentos').push({ cliente: sUser, telefone: sPhone, profissional: sStaff, servico: sService, data: d, hora: sTime }).then(() => {
+            avisar("Reservado!", "sucesso"); setTimeout(() => location.reload(), 2000);
+        });
+    }
 </script>
-
 </body>
 </html>
+
+
+   
+
