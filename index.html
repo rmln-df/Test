@@ -1,16 +1,32 @@
-i<!DOCTYPE html>
+
+
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barbearia Waldemar WD</title>
+    
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e67e22">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
     <style>
-        :root { --bg: #121212; --card: #1c1c1c; --primary: #e67e22; --text: #ffffff; --success:
-        #ff8800;
-      --danger: #c0392b; --info: #3498db; }
+        :root { 
+            --bg: #121212; 
+            --card: #1c1c1c; 
+            --primary: #e67e22; 
+            --text: #ffffff; 
+            --success: #ff8800;
+            --danger: #c0392b; 
+            --info: #3498db; 
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         
@@ -20,7 +36,6 @@ i<!DOCTYPE html>
         .screen { display: none; height: 100%; padding: 20px; overflow-y: auto; }
         .screen.active { display: block !important; }
 
-        /* BARRA DE NOTIFICAÇÃO (APENAS PARA CLIENTES) */
         #barra-mensagem { display: none; background: var(--success); color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; position: sticky; top: 0; width: 100%; z-index: 2000; border-bottom: 2px solid rgba(0,0,0,0.2); }
 
         #toast-aviso { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; z-index: 3000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; }
@@ -39,19 +54,7 @@ i<!DOCTYPE html>
         .item.selected { border-color: var(--primary); background: rgba(230, 126, 34, 0.15); }
 
         .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        
-        .time-slot {
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    border: 2px solid #ff8800;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-}
-        /* 👆
-        .time-slot { padding: 12px; border-radius: 8px; text-align: center; border: 2px solid var(--success); color: var(--success); cursor: pointer; font-weight: bold; }
-        */
+        .time-slot { padding: 12px; border-radius: 8px; text-align: center; border: 2px solid #ff8800; color: #fff; cursor: pointer; font-weight: bold; }
         .time-slot.selected { background: var(--info) !important; color: white !important; border-color: var(--info) !important; }
         .time-slot.occupied { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; cursor: not-allowed; }
         
@@ -63,14 +66,7 @@ i<!DOCTYPE html>
         .card-msg-footer { background: rgba(39, 174, 96, 0.1); border: 1px dashed var(--success); padding: 8px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: var(--success); font-weight: bold; }
         .btn-excluir { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-transform: uppercase; }
         
-        .icone-servico{
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    margin-bottom: 8px;
-}
-        
-        
+        .icone-servico { width: 100px; height: 100px; object-fit: contain; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -79,13 +75,10 @@ i<!DOCTYPE html>
     <div id="toast-aviso">Mensagem</div>
     <div id="barra-mensagem"></div>
 
+    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="login-box">
             <h3>Barbearia Waldemar</h3>
-            
-            <!--
-            <p style="color: gray;margin-bottom: 30px; font-weight: bold;">WORK DESIGN</p>
-            -->
             <label>NOME DO CLIENTE</label>
             <input type="text" id="login-user" placeholder="Seu nome">
             <label>CELULAR (SENHA)</label>
@@ -94,91 +87,49 @@ i<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- TELA PROFISSIONAL -->
     <div id="screen-staff" class="screen">
         <h3>Profissional</h3>
         <div class="grid">
-<!--
-            
-div class="item" onclick="selSr(this, 'Waldemar')">
-
-        
-<img src="img/Waldemar.png" class="icone-servico">
-<p>Waldemar</p>
-</div>
-   -->       
             <div class="item" onclick="selSt(this, 'Valdemar')"><span>👨🏻‍💼</span><p>Valdemar</p></div>
-        
             <div class="item" onclick="selSt(this, 'Outros')"><span>💈</span><p>Outros</p></div>
         </div>
         <button class="btn btn-back" onclick="nav('screen-login')">VOLTAR</button>
     </div>
     
-    
-    
-    <!-- SERVIÇOS -->
-
-<div id="screen-services" class="screen">
-
-<h3>Serviços</h3>
-
-<div class="grid">
-
-<div class="item" onclick="selSr(this, 'corte tesoura')">
-<img src="img/corte tesoura.png" class="icone-servico">
-<p>corte tesoura</p>
-</div>
-
-<div class="item" onclick="selSr(this, 'corte a máquina')">
-<img src="img/corte a máquina.png" class="icone-servico">
-<p>corte a máquina</p>
-</div>
-
-<div class="item" onclick="selSr(this, 'corte combo')">
-<img src="img/corte combo.png" class="icone-servico">
-<p>corte combo</p>
-</div>
-
-<div class="item" onclick="selSr(this, 'corte com luzes')">
-<img src="img/corte com luzes.png" class="icone-servico">
-<p>corte com luzes</p>
-</div>
-
-<div class="item" onclick="selSr(this, 'corte pigmentação')">
-<img src="img/corte pigmentação.png" class="icone-servico">
-<p>corte pigmentação</p>
-</div>
-
-<div class="item" onclick="selSr(this, 'corte degradê')">
-<img src="img/corte degradê.png" class="icone-servico">
-<p>corte degradê</p>
-</div>
-
-</div>
-
-<button class="btn btn-back" onclick="nav('screen-staff')">
-VOLTAR
-</button>
-
-</div>
-    
-  <!--  ☝️
-    
-
+    <!-- TELA SERVIÇOS -->
     <div id="screen-services" class="screen">
         <h3>Serviços</h3>
         <div class="grid">
-            <div class="item" onclick="selSr(this, 'Corte/Tesoura')"><span>✂️</span><p>Corte</p></div>
-            <div class="item" onclick="selSr(this, 'Barba')"><span>🪒</span><p>Barba</p></div>
-            <div class="item" onclick="selSr(this, 'Combo')"><span>🧔</span><p>Combo</p></div>
-            <div class="item" onclick="selSr(this, 'Luzes')"><span>💡</span><p>Luzes</p></div>
-            <div class="item" onclick="selSr(this, 'Pigmentação')"><span>🎨</span><p>Pigmentação</p></div>
-            <div class="item" onclick="selSr(this, 'Sobrancelha')"><span>🤨</span><p>Sobrancelha</p></div>
+            <div class="item" onclick="selSr(this, 'corte tesoura')">
+                <img src="img/corte tesoura.png" class="icone-servico">
+                <p>corte tesoura</p>
+            </div>
+            <div class="item" onclick="selSr(this, 'corte a máquina')">
+                <img src="img/corte a máquina.png" class="icone-servico">
+                <p>corte a máquina</p>
+            </div>
+            <div class="item" onclick="selSr(this, 'corte combo')">
+                <img src="img/corte combo.png" class="icone-servico">
+                <p>corte combo</p>
+            </div>
+            <div class="item" onclick="selSr(this, 'corte com luzes')">
+                <img src="img/corte com luzes.png" class="icone-servico">
+                <p>corte com luzes</p>
+            </div>
+            <div class="item" onclick="selSr(this, 'corte pigmentação')">
+                <img src="img/corte pigmentação.png" class="icone-servico">
+                <p>corte pigmentação</p>
+            </div>
+            <div class="item" onclick="selSr(this, 'corte degradê')">
+                <img src="img/corte degradê.png" class="icone-servico">
+                <p>corte degradê</p>
+            </div>
         </div>
         <button class="btn btn-back" onclick="nav('screen-staff')">VOLTAR</button>
     </div>
-    
-    -->
 
+    <!-- TELA AGENDAMENTO -->
     <div id="screen-booking" class="screen">
         <h3>Agendamento</h3>
         <label>DATA</label>
@@ -188,6 +139,7 @@ VOLTAR
         <button class="btn btn-back" onclick="nav('screen-services')">VOLTAR</button>
     </div>
 
+    <!-- TELA ADMIN -->
     <div id="screen-admin" class="screen">
         <h3>Painel Admin</h3>
         <div id="admin-list">Carregando...</div>
@@ -196,7 +148,20 @@ VOLTAR
 </div>
 
 <script>
-    const firebaseConfig = { databaseURL: "https://barbearia-valdemar-default-rtdb.firebaseio.com", projectId: "barbearia-valdemar" };
+    // Registro do Service Worker para suporte Offline
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrado!', reg))
+                .catch(err => console.error('Falha no Service Worker', err));
+        });
+    }
+
+    // Configuração Firebase
+    const firebaseConfig = { 
+        databaseURL: "https://barbearia-valdemar-default-rtdb.firebaseio.com", 
+        projectId: "barbearia-valdemar" 
+    };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -231,14 +196,15 @@ VOLTAR
         if(u === "WD" && p === "9994") { 
             isAdmin = true;
             uEl.value = ""; pEl.value = "";
-            document.getElementById('barra-mensagem').style.display = "none"; // Garante que some no admin
+            document.getElementById('barra-mensagem').style.display = "none";
             nav('screen-admin'); 
             return; 
         }
 
         if(u !== "" && p.length >= 8) {
             isAdmin = false;
-            localStorage.setItem('barbearia_nome', u); localStorage.setItem('barbearia_fone', p);
+            localStorage.setItem('barbearia_nome', u); 
+            localStorage.setItem('barbearia_fone', p);
             sUser = u; sPhone = p; 
             ouvirMensagensAdm(u, p); 
             nav('screen-staff');
@@ -246,9 +212,7 @@ VOLTAR
     }
 
     function ouvirMensagensAdm(nome, fone) {
-        // Se for admin, não precisa ouvir as próprias mensagens no topo
         if(isAdmin) return;
-
         database.ref('agendamentos').on('value', snap => {
             const ags = snap.val(); let msg = "";
             if(ags) Object.values(ags).forEach(ag => { 
@@ -258,22 +222,16 @@ VOLTAR
             if(msg && !isAdmin) { barra.innerText = msg; barra.style.display = "block"; } else { barra.style.display = "none"; }
         });
     }
-    
-    
-        function renderAdmin() {
+
+    function renderAdmin() {
         const container = document.getElementById('admin-list');
         database.ref('agendamentos').on('value', snap => {
             container.innerHTML = ""; const val = snap.val();
             if(!val) return container.innerHTML = "Agenda vazia.";
-            
-            // Lista de dias para converter o número do sistema em nome
             const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
             Object.keys(val).forEach(id => {
                 const ag = val[id];
-                
-                // Lógica para descobrir o dia da semana
-                // Adicionamos 'T00:00' para evitar erro de fuso horário na conversão
                 const dataObj = new Date(ag.data + 'T00:00');
                 const diaNome = diasSemana[dataObj.getDay()];
 
@@ -294,34 +252,6 @@ VOLTAR
             });
         });
     }
-
-    /* 👆
-
-    function renderAdmin() {
-        const container = document.getElementById('admin-list');
-        database.ref('agendamentos').on('value', snap => {
-            container.innerHTML = ""; const val = snap.val();
-            if(!val) return container.innerHTML = "Agenda vazia.";
-            Object.keys(val).forEach(id => {
-                const ag = val[id];
-                const card = document.createElement('div');
-                card.className = 'appointment-card';
-                card.innerHTML = `
-                    <div class="card-info" onclick="responderCliente('${id}', '${ag.cliente}')">
-                        <strong style="color:var(--primary); font-size:18px;">${ag.profissional}</strong><br>
-                        <strong>Cliente:</strong> ${ag.cliente}<br>
-                        <strong>Serviço:</strong> ${ag.servico}<br>
-                        <strong>Horário:</strong> ${ag.hora} | ${ag.data}<br>
-                        <strong>Tel:</strong> ${ag.telefone}<br>
-                        ${ag.msgAdm ? `<div class="card-msg-footer">📩 Enviado: ${ag.msgAdm}</div>` : '<em style="color:gray; font-size:12px;">(Toque para responder ao cliente)</em>'}
-                    </div>
-                    <button class="btn-excluir" onclick="del('${id}')">Finalizar / Remover</button>
-                `;
-                container.appendChild(card);
-            });
-        });
-    }
-    */
 
     function responderCliente(id, nome) {
         let m = prompt("Mensagem para " + nome);
@@ -364,14 +294,18 @@ VOLTAR
     function confirmarAgendamento() {
         const d = document.getElementById('book-date').value;
         if(!d || !sTime) { avisar("Escolha data e hora!", "aviso"); return; }
-        database.ref('agendamentos').push({ cliente: sUser, telefone: sPhone, profissional: sStaff, servico: sService, data: d, hora: sTime }).then(() => {
-            avisar("Reservado!", "sucesso"); setTimeout(() => location.reload(), 2000);
+        database.ref('agendamentos').push({ 
+            cliente: sUser, 
+            telefone: sPhone, 
+            profissional: sStaff, 
+            servico: sService, 
+            data: d, 
+            hora: sTime 
+        }).then(() => {
+            avisar("Reservado!", "sucesso"); 
+            setTimeout(() => location.reload(), 2000);
         });
     }
 </script>
 </body>
 </html>
-
-
-   
-
